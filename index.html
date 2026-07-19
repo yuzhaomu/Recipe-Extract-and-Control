@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能菜谱系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #FF6B6B;
+            --primary-dark: #EE5A5A;
+            --secondary: #4ECDC4;
+            --accent: #FFE66D;
+            --bg: #F8FAFC;
+            --card: #FFFFFF;
+            --text: #1E293B;
+            --text-light: #64748B;
+            --border: #E2E8F0;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, var(--bg) 0%, #E8F5F3 100%);
+            min-height: 100vh;
+            color: var(--text);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px 0;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        header p {
+            color: var(--text-light);
+            font-size: 1.1rem;
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 12px 28px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--card);
+            color: var(--text-light);
+            box-shadow: var(--shadow);
+        }
+
+        .tab-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #3DB5AC;
+        }
+
+        .btn-danger {
+            background: #EF4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #DC2626;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.2s ease;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-group textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .recipe-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .recipe-card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .recipe-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .recipe-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: var(--text);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .recipe-card p {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .recipe-card .meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-light);
+            font-size: 0.8rem;
+        }
+
+        .recipe-card .actions {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .recipe-card:hover .actions {
+            opacity: 1;
+        }
+
+        .detail-section {
+            margin-bottom: 24px;
+        }
+
+        .detail-section h4 {
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .entity-tag {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .entity-tag.食材 { background: #D1FAE5; color: #065F46; }
+        .entity-tag.调料 { background: #FEF3C7; color: #92400E; }
+        .entity-tag.份量 { background: #E0E7FF; color: #4338CA; }
+        .entity-tag.处理方式 { background: #FCE7F3; color: #9D174D; }
+        .entity-tag.动作 { background: #DBEAFE; color: #1E40AF; }
+        .entity-tag.时间 { background: #F3E8FF; color: #7C3AED; }
+
+        .relation-item {
+            display: inline-block;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, var(--secondary) 0%, #3DB5AC 100%);
+            color: white;
+            border-radius: 8px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+
+        .relation-item span {
+            font-weight: 700;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-light);
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-light);
+        }
+
+        .empty-state h3 {
+            margin-bottom: 10px;
+            color: var(--text);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: fadeIn 0.2s ease;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 0;
+            max-width: 700px;
+            width: 92%;
+            max-height: 85vh;
+            overflow: hidden;
+            animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            padding: 24px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .modal-header h2 {
+            color: white;
+            font-size: 1.5rem;
+            margin: 0;
+        }
+
+        .modal-close {
+            width: 40px;
+            height: 40px;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            font-size: 1.4rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+
+        .modal-body {
+            padding: 30px;
+            overflow-y: auto;
+            max-height: calc(85vh - 80px);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .ingredient-list, .seasoning-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .ingredient-list li, .seasoning-list li {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            background: var(--bg);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        .ingredient-list li::before {
+            content: '🥬';
+            margin-right: 12px;
+            font-size: 1.1rem;
+        }
+
+        .seasoning-list li::before {
+            content: '🧂';
+            margin-right: 12px;
+            font-size: 1.1rem;
+        }
+
+        .step-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .step-list li {
+            display: flex;
+            padding: 15px;
+            background: linear-gradient(135deg, var(--bg) 0%, #F0FDFA 100%);
+            border-radius: 12px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .step-number {
+            width: 32px;
+            height: 32px;
+            background: var(--secondary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+
+        .step-content {
+            flex: 1;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .success-toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--secondary);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: var(--shadow-lg);
+            animation: slideInRight 0.3s ease;
+            z-index: 2000;
+        }
+
+        .error-toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #EF4444;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: var(--shadow-lg);
+            animation: slideInRight 0.3s ease;
+            z-index: 2000;
+        }
+
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(100px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @media (max-width: 768px) {
+            .recipe-grid {
+                grid-template-columns: 1fr;
+            }
+
+            header h1 {
+                font-size: 1.8rem;
+            }
+
+            .tab-btn {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🍳 智能菜谱系统</h1>
+            <p>基于NER和RE模型的菜谱信息抽取与管理平台</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="list">📋 菜谱列表</button>
+            <button class="tab-btn" data-tab="create">➕ 创建菜谱</button>
+        </div>
+
+        <div id="list-tab" class="tab-content active">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">菜谱列表</h2>
+                    <button class="btn btn-primary" onclick="loadRecipes()">🔄 刷新</button>
+                </div>
+                <div id="recipe-list" class="recipe-grid">
+                    <div class="loading">加载中...</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="create-tab" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">创建新菜谱</h2>
+                </div>
+                <form id="create-form">
+                    <div class="form-group">
+                        <label for="recipe-title">菜谱名称</label>
+                        <input type="text" id="recipe-title" placeholder="例如：红烧肉" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="recipe-text">菜谱内容</label>
+                        <textarea id="recipe-text" placeholder="请输入菜谱步骤，例如：将500克五花肉切成小块，加入生抽2勺，腌制10分钟，然后放入锅中翻炒。" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px;">
+                        创建菜谱
+                    </button>
+                </form>
+            </div>
+
+            <div class="card" id="extract-preview" style="display: none;">
+                <div class="card-header">
+                    <h2 class="card-title">🔍 抽取结果预览</h2>
+                </div>
+                <div id="extract-result"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="detail-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">菜谱详情</h2>
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body" id="modal-body"></div>
+            <div class="btn-group">
+                <button class="btn btn-danger" onclick="deleteRecipe()">🗑️ 删除菜谱</button>
+                <button class="btn btn-secondary" onclick="closeModal()">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+        let currentRecipeId = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadRecipes();
+
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                    btn.classList.add('active');
+                    document.getElementById(`${btn.dataset.tab}-tab`).classList.add('active');
+                });
+            });
+
+            document.getElementById('create-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await createRecipe();
+            });
+
+            document.getElementById('recipe-text').addEventListener('input', async () => {
+                const text = document.getElementById('recipe-text').value;
+                if (text.length > 10) {
+                    await extractPreview(text);
+                } else {
+                    document.getElementById('extract-preview').style.display = 'none';
+                }
+            });
+
+            document.getElementById('detail-modal').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('detail-modal')) {
+                    closeModal();
+                }
+            });
+        });
+
+        async function loadRecipes() {
+            const container = document.getElementById('recipe-list');
+            container.innerHTML = '<div class="loading">加载中...</div>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/recipes`);
+                const recipes = await response.json();
+                
+                if (recipes.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <h3>暂无菜谱</h3>
+                            <p>点击上方"创建菜谱"按钮添加第一个菜谱</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = recipes.map(recipe => `
+                    <div class="recipe-card" onclick="showRecipeDetail(${recipe.id})">
+                        <div class="actions">
+                            <button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); deleteRecipe(${recipe.id})">删除</button>
+                        </div>
+                        <h3>${recipe.title}</h3>
+                        <p>${recipe.content}</p>
+                        <div class="meta">
+                            <span>📅 ${recipe.created_at ? new Date(recipe.created_at).toLocaleDateString() : ''}</span>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>加载失败</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function extractPreview(text) {
+            try {
+                const response = await fetch(`${API_BASE}/extract`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text })
+                });
+                const result = await response.json();
+                
+                document.getElementById('extract-preview').style.display = 'block';
+                document.getElementById('extract-result').innerHTML = `
+                    <div class="detail-section">
+                        <h4>🏷️ 识别到的实体</h4>
+                        <div>
+                            ${result.entities.map(e => 
+                                `<span class="entity-tag ${e.label}">${e.text} (${e.label})</span>`
+                            ).join('') || '<span style="color: var(--text-light)">未识别到实体</span>'}
+                        </div>
+                    </div>
+                    <div class="detail-section">
+                        <h4>🔗 抽取的关系</h4>
+                        <div>
+                            ${result.relations.map(r => 
+                                `<span class="relation-item"><span>${r.head}</span> ${r.relation} <span>${r.tail}</span></span>`
+                            ).join('') || '<span style="color: var(--text-light)">未抽取到关系</span>'}
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('抽取预览失败:', error);
+            }
+        }
+
+        async function createRecipe() {
+            const title = document.getElementById('recipe-title').value;
+            const text = document.getElementById('recipe-text').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/recipe`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, text })
+                });
+                
+                if (response.ok) {
+                    showToast('✅ 菜谱创建成功！', 'success');
+                    document.getElementById('create-form').reset();
+                    document.getElementById('extract-preview').style.display = 'none';
+                    loadRecipes();
+                    document.querySelectorAll('.tab-btn')[0].click();
+                } else {
+                    const error = await response.json();
+                    showToast(`❌ 创建失败：${error.detail || '未知错误'}`, 'error');
+                }
+            } catch (error) {
+                showToast(`❌ 创建失败：${error.message}`, 'error');
+            }
+        }
+
+        async function showRecipeDetail(id) {
+            currentRecipeId = id;
+            
+            try {
+                const response = await fetch(`${API_BASE}/recipes/${id}`);
+                const recipe = await response.json();
+                
+                document.getElementById('modal-title').textContent = recipe.title;
+                
+                const ingredientsHtml = recipe.ingredients && recipe.ingredients.length > 0 
+                    ? `<ul class="ingredient-list">${recipe.ingredients.map(i => `
+                        <li><span style="font-weight: 600;">${i.name}</span>
+                        ${i.quantity ? `<span style="margin-left: 8px; color: var(--text-light);">${i.quantity}</span>` : ''}
+                        ${i.processing_method ? `<span style="margin-left: 8px; color: var(--text-light);">· ${i.processing_method}</span>` : ''}
+                        </li>`).join('')}</ul>`
+                    : '<p style="color: var(--text-light);">暂无食材信息</p>';
+                
+                const seasoningsHtml = recipe.seasonings && recipe.seasonings.length > 0 
+                    ? `<ul class="seasoning-list">${recipe.seasonings.map(s => `
+                        <li><span style="font-weight: 600;">${s.name}</span>
+                        ${s.quantity ? `<span style="margin-left: 8px; color: var(--text-light);">${s.quantity}</span>` : ''}
+                        </li>`).join('')}</ul>`
+                    : '<p style="color: var(--text-light);">暂无调料信息</p>';
+                
+                const actionsHtml = recipe.actions && recipe.actions.length > 0 
+                    ? `<ol class="step-list">${recipe.actions.map((a, index) => `
+                        <li>
+                            <span class="step-number">${index + 1}</span>
+                            <span class="step-content">
+                                <strong>${a.action_type}</strong>
+                                ${a.target_name ? ` → ${a.target_name}` : ''}
+                                ${a.duration ? ` · ${a.duration}` : ''}
+                            </span>
+                        </li>`).join('')}</ol>`
+                    : '<p style="color: var(--text-light);">暂无烹饪步骤</p>';
+                
+                document.getElementById('modal-body').innerHTML = `
+                    <div class="detail-section">
+                        <h4>📝 菜谱描述</h4>
+                        <p style="line-height: 1.8; color: var(--text);">${recipe.content}</p>
+                    </div>
+                    
+                    <div class="detail-section">
+                        <h4>🥬 准备食材</h4>
+                        ${ingredientsHtml}
+                    </div>
+                    
+                    <div class="detail-section">
+                        <h4>🧂 调料清单</h4>
+                        ${seasoningsHtml}
+                    </div>                    
+                    
+                    <div class="detail-section">
+                        <h4>📅 创建时间</h4>
+                        <p style="color: var(--text-light);">${recipe.created_at ? new Date(recipe.created_at).toLocaleString() : ''}</p>
+                    </div>
+                `;
+                
+                document.getElementById('detail-modal').classList.add('active');
+            } catch (error) {
+                showToast(`❌ 加载失败：${error.message}`, 'error');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('detail-modal').classList.remove('active');
+            currentRecipeId = null;
+        }
+
+        async function deleteRecipe(id = currentRecipeId) {
+            if (!id) return;
+            
+            if (!confirm('确定要删除这个菜谱吗？')) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/recipes/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    showToast('✅ 菜谱已删除', 'success');
+                    closeModal();
+                    loadRecipes();
+                } else {
+                    const error = await response.json();
+                    showToast(`❌ 删除失败：${error.detail || '未知错误'}`, 'error');
+                }
+            } catch (error) {
+                showToast(`❌ 删除失败：${error.message}`, 'error');
+            }
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = type === 'success' ? 'success-toast' : 'error-toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
